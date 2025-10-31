@@ -1,5 +1,5 @@
 
-# 🧩 ĐỒ ÁN MÔN HỌC – HỆ THỐNG MICROSERVICES TRIỂN KHAI VỚI DOCKER & GITHUB ACTIONS
+# ĐỒ ÁN MÔN HỌC – HỆ THỐNG MICROSERVICES TRIỂN KHAI VỚI DOCKER & GITHUB ACTIONS
 
 ## 🧭 1. Giới thiệu dự án
 
@@ -140,45 +140,7 @@ Các API chính đã được test thành công:
 
 ---
 
-## ⚙️ 7. Thiết lập CI/CD (GitHub Actions)
-
-Hệ thống có hai workflow chính trong `.github/workflows/`:
-
-### 🔹 1. `test.yml` – Continuous Integration (CI)
-
-Tự động chạy khi có **push** hoặc **pull request**:
-
-* Tạo file `.env` cho từng service.
-* Cài dependencies.
-* Chạy `npm test` cho các service `auth` và `product`.
-
-### 🔹 2. `docker-build.yml` – Continuous Deployment (CD)
-
-* Build image Docker của từng service.
-* Có thể cấu hình để push lên **Docker Hub** hoặc deploy tự động.
-
-Ví dụ cấu trúc `docker-build.yml`:
-
-```yaml
-name: Build Docker Images
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Build Docker images
-        run: docker-compose build
-```
-
----
-
-Tuyệt vời 👍 Dưới đây là **phần 8** được viết lại **đúng theo định dạng và phong cách trình bày** trong README của bạn (dấu #, emoji, markdown table, bullet points...), bạn chỉ cần **copy & paste** vào file là dùng được ngay:
-
----
-
-## 🚀 8. Liên kết CI/CD với Docker (Tự động Test – Build – Deploy)
+## 🚀 7. Liên kết CI/CD với Docker (Tự động Test – Build – Deploy)
 
 Toàn bộ quy trình **CI/CD** được triển khai thông qua file
 📄 `.github/workflows/ci-cd.yml`, bao gồm **3 giai đoạn chính**:
@@ -284,7 +246,7 @@ Toàn bộ quy trình **CI/CD** được triển khai thông qua file
 
 ---
 
-## 📊 9. Kết quả kiểm thử & đánh giá
+## 📊 8. Kết quả kiểm thử & đánh giá
 
 * ✅ Hệ thống chạy ổn định trên Docker Desktop.
 * ✅ Tất cả các chức năng đăng ký, đăng nhập, quản lý sản phẩm, tạo đơn hàng hoạt động tốt.
@@ -297,7 +259,7 @@ Toàn bộ quy trình **CI/CD** được triển khai thông qua file
 
 ---
 
-## 📚 11. Kết luận
+## 📚 9. Kết luận
 
 Dự án đã hoàn thiện các yêu cầu:
 
