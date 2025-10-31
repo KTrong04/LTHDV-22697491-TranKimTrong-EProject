@@ -117,18 +117,17 @@ class ProductController {
     }
   }
 
-  async getProductsById(req, res) {
+  async getProductId(req, res)
+  {
     try {
-      const { ids } = req.body;
-      if (!ids?.length) return res.status(400).json({ message: "Invalid IDs" });
-
-      const products = await Product.find({ _id: { $in: ids } }).lean();
-      res.json(products);
-    } catch {
-      res.status(500).json({ message: "Server error" });
+      const {ids} = req.body;
+      const p = await Product.findById(ids).lean();
+      if (!p) return res.status(404).json({message:"Không tìm thấy sản phẩm"});
+      res.json(p);
+    } catch (error) {
+      res.status(500).json({message:"Server error"});
     }
   }
-
 }
 
 module.exports = ProductController;
