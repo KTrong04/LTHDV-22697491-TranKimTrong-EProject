@@ -140,14 +140,7 @@ Các API chính đã được test thành công:
 
 ---
 
-## 🧱 7. Endpoint đặc biệt để chấm điểm
-
-Đã thêm **endpoint `/id` (GET)** trong Product Service để hiển thị thông tin chi tiết sản phẩm theo `id`,
-đáp ứng **mục số 8** trong bảng yêu cầu của đề thi.
-
----
-
-## ⚙️ 8. Thiết lập CI/CD (GitHub Actions)
+## ⚙️ 7. Thiết lập CI/CD (GitHub Actions)
 
 Hệ thống có hai workflow chính trong `.github/workflows/`:
 
@@ -181,18 +174,117 @@ jobs:
 
 ---
 
-## 🚀 9. Liên kết CI/CD với Docker
-
-Khi commit & push code lên GitHub:
-
-1. **GitHub Actions** sẽ tự động kích hoạt.
-2. Workflow **test.yml** chạy kiểm thử.
-3. Nếu thành công, workflow **docker-build.yml** sẽ build image Docker.
-4. Có thể mở rộng để **push lên Docker Hub** (sử dụng secrets `DOCKER_USERNAME`, `DOCKER_PASSWORD`).
+Tuyệt vời 👍 Dưới đây là **phần 8** được viết lại **đúng theo định dạng và phong cách trình bày** trong README của bạn (dấu #, emoji, markdown table, bullet points...), bạn chỉ cần **copy & paste** vào file là dùng được ngay:
 
 ---
 
-## 📊 10. Kết quả kiểm thử & đánh giá
+## 🚀 8. Liên kết CI/CD với Docker (Tự động Test – Build – Deploy)
+
+Toàn bộ quy trình **CI/CD** được triển khai thông qua file
+📄 `.github/workflows/ci-cd.yml`, bao gồm **3 giai đoạn chính**:
+
+1. 🧪 **Test (Kiểm thử tự động)**
+2. 🐳 **Build & Push Docker Image**
+3. 💻 **Deploy (Triển khai tự động)**
+
+---
+
+### 🧪 Giai đoạn 1 – Unit Test (MongoDB + RabbitMQ)
+
+* Workflow tự động kích hoạt khi có **push lên nhánh `main`**.
+* Thiết lập môi trường test với **MongoDB** và **RabbitMQ**.
+* Tạo file `.env` cho từng service (`auth` và `product`) để có thể chạy test độc lập.
+* Cài đặt dependencies và chạy lệnh `npm test`:
+
+  * **Auth Service:** kiểm thử các API `/register`, `/login`, `/dashboard`.
+  * **Product Service:** kiểm thử các API `/products`, `/products/:id`, `/products/create`.
+* Dịch vụ **Auth** được khởi chạy nền để **Product** có thể gửi request xác thực.
+* Workflow cũng tự động:
+
+  * Chờ MongoDB và RabbitMQ sẵn sàng.
+  * Đăng ký user test bằng `curl`.
+  * Ghi log để hỗ trợ debug khi test thất bại.
+
+➡️ **Kết quả:** Nếu toàn bộ test thành công, pipeline sẽ chuyển sang bước build Docker.
+
+---
+
+### 🐳 Giai đoạn 2 – Build & Push Docker Image
+
+* Sử dụng **Docker Buildx** để build đa nền tảng (`linux/amd64`, `linux/arm64`).
+* Đăng nhập Docker Hub bằng **secrets**:
+
+  * `DOCKERHUB_USERNAME`
+  * `DOCKERHUB_TOKEN`
+* Tiến hành build tuần tự cho **4 service chính**:
+
+  * `api-gateway`
+  * `auth`
+  * `product`
+  * `order`
+* Mỗi image được gắn 2 tag:
+
+  * `latest`
+  * `sha-<commit_id>` (đại diện cho phiên bản commit cụ thể)
+* Sau khi build xong, image được **push lên Docker Hub** tương ứng.
+
+➡️ **Kết quả:** Các image Docker mới nhất của từng service có sẵn trên Docker Hub, sẵn sàng deploy.
+
+---
+
+### 💻 Giai đoạn 3 – Deploy tự động (Windows self-hosted runner)
+
+* Giai đoạn này chạy trên **Windows self-hosted runner**, giúp triển khai tự động tại môi trường cục bộ.
+* Các bước thực hiện:
+
+  1. Kiểm tra môi trường Docker (`docker --version`, `docker compose version`)
+  2. Đăng nhập Docker Hub
+  3. Dừng container cũ và xoá orphan container
+  4. Pull image mới nhất cho từng service (`api-gateway`, `auth`, `product`, `order`)
+  5. Sinh file `.env` động cho `docker-compose`
+  6. Khởi chạy lại toàn bộ hệ thống:
+
+     ```cmd
+     docker compose up -d --remove-orphans --force-recreate
+     ```
+  7. Kiểm tra container đang chạy (`docker ps`)
+
+➡️ **Kết quả:** Hệ thống được tự động deploy lại với phiên bản mới nhất ngay khi có commit mới.
+
+---
+
+### 🧭 Tóm tắt quy trình CI/CD
+
+| Giai đoạn           | Công cụ sử dụng                      | Mục tiêu                          | Trạng thái |
+| ------------------- | ------------------------------------ | --------------------------------- | ---------- |
+| **1. Test**         | MongoDB, RabbitMQ, Mocha, Chai       | Kiểm thử chức năng các service    | ✅ Tự động  |
+| **2. Build & Push** | Docker, GitHub Actions               | Build image và đẩy lên Docker Hub | ✅ Tự động  |
+| **3. Deploy**       | Docker Compose (Windows self-hosted) | Triển khai phiên bản mới nhất     | ✅ Tự động  |
+
+---
+
+### 🔐 Secrets được sử dụng
+
+| Tên biến              | Mô tả                                   |
+| --------------------- | --------------------------------------- |
+| `DOCKERHUB_USERNAME`  | Tên tài khoản Docker Hub                |
+| `DOCKERHUB_TOKEN`     | Token để đăng nhập Docker Hub           |
+| `JWT_SECRET`          | Khóa bí mật JWT dùng trong Auth Service |
+| `LOGIN_TEST_USER`     | Tài khoản test tự động                  |
+| `LOGIN_TEST_PASSWORD` | Mật khẩu test tự động                   |
+
+---
+
+### 📦 Lợi ích đạt được
+
+* Tự động hóa toàn bộ quy trình **test → build → deploy**.
+* Giảm thiểu lỗi thủ công khi triển khai và build image.
+* Đảm bảo các service hoạt động nhất quán giữa môi trường dev và deploy.
+* Dễ dàng mở rộng để triển khai lên **VPS hoặc cloud** trong tương lai.
+
+---
+
+## 📊 9. Kết quả kiểm thử & đánh giá
 
 * ✅ Hệ thống chạy ổn định trên Docker Desktop.
 * ✅ Tất cả các chức năng đăng ký, đăng nhập, quản lý sản phẩm, tạo đơn hàng hoạt động tốt.
